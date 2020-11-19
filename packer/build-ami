@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+export project_dir="$(dirname $0)"
+
+export aws_account_id=$(aws sts get-caller-identity --query Account --output text)
+
+export APP_NAME=php-app
+
+(cd ${project_dir}/ && packer build ubuntu.json)
