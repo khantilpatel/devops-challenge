@@ -1,0 +1,32 @@
+---
+- name: Restart container if stoped or deploy any change in config like image version.
+  hosts: all
+  remote_user: ec2-user
+  gather_facts: false
+  tasks:
+    - name: Make sure container is running with given config if not then create or update it.
+      docker_container:
+        debug: yes
+        name: nginx
+        image: "{{ lookup('env', 'AWS_ACCOUNT_ID') }}.dkr.ecr.us-east-1.amazonaws.com/nginx-web-app:latest"
+        state: started
+        pull: yes
+        restart_policy: unless-stopped
+        ports:
+          - 80:80
+        comparisons:
+          '*': ignore # by default, ignore *all* options (including image)
+          image: strict # except for image version; there, we want to be strict
+    - name: Test
+      docker_container:
+        debug: yes
+        name: php-app
+        image: "{{ lookup('env', 'AWS_ACCOUNT_ID') }}.dkr.ecr.us-east-1.amazonaws.com/php-app:latest"
+        state: started
+        pull: yes
+        restart_policy: unless-stopped
+        ports:
+        - 3000:80
+        comparisons:
+          '*': ignore # by default, ignore *all* options (including image)
+          image: strict # except for image version; there, we want to be strict
