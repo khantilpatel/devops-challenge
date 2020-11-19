@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+
+project_dir="$(dirname $0)"
+
+elb_host=$(aws elb describe-load-balancers --load-balancer-names web-elb --query 'LoadBalancerDescriptions[0].DNSName' --output text)
+
+RESPONSE=$(curl -s ${elb_host}/version.txt)
+
+app_version=1.0.7
+
+if [[-z "${RESPONSE}"]] || [[ ${RESPONSE} != ${app_version} ]]; then
+    echo "${red}ERROR: Application is not running ${app_version}${reset}"
+
+    echo "Now trying to fix it with restarting containers"
+    ${project_dir}/check-update-app
+
+    exit 1
+else
+    echo -e "${green}Your app has been running on version ${app_version}! You can access it here: http://${elb_host}/version.txt${reset}"
+fi

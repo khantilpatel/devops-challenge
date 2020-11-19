@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+
+# 1. Make sure aws cli is configured
+check(){
+    echo "Checking setup:"
+    for var in "$@"; do
+        if ! type "$var" > /dev/null; then
+            echo "${red}Error: Is your ${var} configured correctly?${reset}"
+            exit 1
+        else
+            echo "${green}${var} setup looks good.${reset}"
+        fi
+    done
+}
+
+check aws ansible-playbook docker packer terraform
+
+# Check AWS profile is configured
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+if [[ -z "${AWS_ACCOUNT_ID}" ]]; then
+    echo "${red}AWS profile not configured. (run 'aws configure')${reset}"
+    exit 1
+else
+    echo "${green}AWS profile setup looks good.${reset}"
+fi
+
+# Make all the bash build script executable.
+# find . -type f -iname "*build*" -exec chmod +x {} \;
+
+echo "${green}You're all set!${reset}"

@@ -1,0 +1,54 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "app-name": "{{env `APP_NAME`}}"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "us-east-1",
+      "tags": {
+        "app": "{{user `app-name`}}"
+      },
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "amzn2-ami-hvm-2.0.*-gp2",
+          "root-device-type": "ebs"
+        },
+        "owners": ["137112412989", "591542846629", "801119661308",
+          "102837901569", "013907871322", "206029621532",
+          "286198878708", "443319210888"
+        ],
+        "most_recent": true
+      },
+      "instance_type": "t2.micro",
+      "iam_instance_profile": "php-app_profile",
+      "ssh_username": "ec2-user",
+      "ami_name": "web-app-ami {{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo yum update -y",
+        "sudo amazon-linux-extras install docker -y",
+        "sudo systemctl enable docker",
+        "sudo systemctl start docker",
+        "sudo usermod -a -G docker ec2-user",
+        "sudo yum install amazon-ecr-credential-helper -y",
+        "mkdir ~/.docker",
+        "sudo yum -y install python-pip",
+        "source ~/.bash_profile",
+        "pip install docker --user"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "config.json",
+      "destination": "~/.docker/config.json"
+    }
+  ]
+}

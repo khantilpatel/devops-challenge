@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+project_dir="$(dirname $0)"
+
+echo ${project_dir}
+
+(cd ${project_dir}/terraform/ && ./build)
+
+${project_dir}/nginx/build
+
+${project_dir}/php-app/build

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+project_dir="$(dirname $0)"
+
+REPO_NAME=php-app
+
+aws_account_id=$(aws sts get-caller-identity --query Account --output text)
+
+docker build -t ${REPO_NAME} -f ${project_dir}/Dockerfile ${project_dir}
+
+docker tag ${REPO_NAME} ${aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/${REPO_NAME}:latest
+
+aws ecr get-login-password \
+    | docker login \
+        --password-stdin \
+        --username AWS \
+        "${aws_account_id}.dkr.ecr.us-east-1.amazonaws.com"
+
+docker push ${aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/${REPO_NAME}:latest

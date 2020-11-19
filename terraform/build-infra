@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+#set -x
+
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+
+getAMIID(){
+   ami_id=$(aws ec2 describe-images --filters Name=tag:app,Values=php-app --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
+
+   if [[ ${ami_id} == "None" ]]; then
+    echo "${red}Error: please build an AMI first before running terraform script${reset}"
+    exit 1
+   fi
+
+   export TF_VAR_ami_id=${ami_id}
+
+   echo "${green}Great, found AMI ${ami_id}"
+}
+
+# Prerequisites
+
+project_dir="$(dirname $0)"
+
+## Check for action type
+if [[ -z "$1" ]]; then
+    echo "${red}Please specify a terraform action type (e.g. plan, apply)${reset}"
+    exit 1
+fi
+
+# Execution
+
+action_type="$1"
+
+if [[ ${action_type} == "init" ]]; then
+    (cd ${project_dir}/ && terraform init)
+    exit
+fi
+
+if [[ ${action_type} == "plan" ]]; then
+
+    ## Generate keypair for the new instances.
+    ${project_dir}/keypair.sh
+
+    ## Get the latest AMI ID for this app.
+    getAMIID
+
+    (cd ${project_dir}/ && terraform plan)
+    exit
+fi
+
+if [[ ${action_type} == "apply" ]]; then
+
+    ## Generate keypair for the new instances.
+    ${project_dir}/keypair.sh
+
+    ## Get the latest AMI ID for this app.
+    getAMIID
+
+    (cd ${project_dir}/ && terraform apply)
+
+    elb_host=$(aws elb describe-load-balancers --load-balancer-names web-elb --query 'LoadBalancerDescriptions[0].DNSName' --output text)
+
+    if [[ -z "${elb_host}" ]]; then
+        echo "${red}Error: something went wrong with the deployment${reset}"
+        exit -1
+    else
+
+        echo -e "${green}Your app has been deployed successfully! You can access it here: http://${elb_host}/version.txt${reset}"
+        exit 1
+    fi
+fi
+
+if [[ ${action_type} == "destroy" ]]; then
+    (cd ${project_dir}/ && terraform destroy)
+    exit
+fi
+
+echo "${red}Invalid action type: please enter the action type either 'plan' or 'apply'.${reset}"
