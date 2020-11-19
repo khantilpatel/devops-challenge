@@ -1,0 +1,6 @@
+plugin: aws_ec2
+regions:
+  - us-east-1
+filters:
+  # All instances with their `Name` tag set to `web-app`
+  tag:Name: web-app
