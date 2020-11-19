@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+project_dir="$(dirname $0)"
+
+ansible-galaxy collection install amazon.aws
+ansible-galaxy collection install community.general
+
+# For testing
+# ansible-inventory -i ./aws_ec2.yaml --list
+
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+ansible-playbook -i ${project_dir}/aws_ec2.yaml --private-key ~/.ssh/app-key.pem ${project_dir}/checker.yaml
