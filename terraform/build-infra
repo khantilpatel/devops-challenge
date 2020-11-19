@@ -33,6 +33,11 @@ fi
 
 action_type="$1"
 
+if [[ ${action_type} == "init" ]]; then
+    (cd ${project_dir}/ && terraform init)
+    exit
+fi
+
 if [[ ${action_type} == "plan" ]]; then
 
     ## Generate keypair for the new instances.

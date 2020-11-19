@@ -73,7 +73,9 @@ If we proceed to a phone interview, we’ll be asking questions about why you ma
 
 3. Zero downtime updates to server with rolling updates.
 
-4. Secured, all the network and access is configured through the security groups and IAM instance profile roles. 
+4. Secured, all the network and access is configured through the security groups and IAM instance profile roles.
+
+5. Developer-friendly tooling. 
 
 ### Perquisites
 
@@ -114,6 +116,10 @@ The images are published to private ECR repo instead of a public docker repo.
 ```
 
 [3]. Build the infra with auto scaling group and elb.
+
+```
+./terraform/build-infra init
+```
 
 ```
 ./terraform/build-infra plan

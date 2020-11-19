@@ -29,4 +29,7 @@ else
     echo "${green}AWS profile setup looks good.${reset}"
 fi
 
+# Make all the bash build script executable.
+# find . -type f -iname "*build*" -exec chmod +x {} \;
+
 echo "${green}You're all set!${reset}"
